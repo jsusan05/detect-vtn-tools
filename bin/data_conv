@@ -1,0 +1,62 @@
+#!/bin/bash
+
+VARPATH=../data/data.txt
+VART1PATH=../data/tier1_paths
+VARNONT1PATH=../data/non_tier1_paths
+VARFNAME=rib.20140501.0200.bz2
+VARLIBPATH=../libbgpdump-1.4.99.10
+
+declare -a RouterLink=('route-views.eqix' 'route-views.isc' 'route-views.jinx' 'route-views.kixp' 'route-views.linx' 'route-views.nwax' 'route-views.perth' 'route-views.saopaulo' 'route-views.soxrs' 'route-views.sydney' 'route-views.telxatl' 'route-views.wide' 'route-views3' 'route-views4' 'route-views6' 'ftp://archive.routeviews.org/bgpdata/2014.05/RIBS' 'ftp://archive.routeviews.org/route-views2/2014.05/RIBS');
+
+#remove all files
+rm $VARPATH
+rm ../extract_nodes/prefixpaths.txt
+rm -r $VART1PATH/*
+rmdir $VART1PATH
+rm -r $VARNONT1PATH/*
+rmdir $VARNONT1PATH
+
+#Copy files
+cd $VARLIBPATH
+#compile
+./configure --disable-ipv6
+make
+
+#Download files and append to data.txt
+for i in {0..16}
+do
+    if [ $i -eq 15 ] || [ $i -eq 16 ]; then
+	wget ${RouterLink[i]}/$VARFNAME || { echo "wget failed"; exit 1; } 
+    else
+	wget ftp://archive.routeviews.org/${RouterLink[i]}/bgpdata/2014.05/RIBS/$VARFNAME || { echo "wget failed"; exit 1; } 
+    fi
+       
+    ./bgpdump $VARFNAME >> $VARPATH
+    if grep "IPV6" $VARFNAME
+    then
+        { echo "did not generate an ipv4 file"; exit 1; }    
+    fi
+    rm $VARFNAME
+done
+
+#Generate the hash
+sha1sum $VARPATH > data.txt.sha1sum
+
+#download the oix data
+cd ../data
+wget ftp://archive.routeviews.org/oix-route-views/2014.05/oix-full-snapshot-2014-05-01-0200.bz2 || { echo "wget failed"; exit 1; }    
+bzip2 -d oix-full-snapshot-2014-05-01-0200.bz2
+
+#extract the nodes
+cd ../extract_nodes
+python extractasn.py
+rm oix-full-snapshot-2014-05-01-0200
+python extractuniquepaths.py prefixpaths.txt
+
+#infer relations
+cd ../infer_relations
+make clean
+make
+./inferpgm
+
+      

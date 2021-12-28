@@ -1,0 +1,43 @@
+A path is invalid if the following conditions hold[Ref:http://www.iana.org/assignments/as-numbers/as-numbers.xhtml]
+# Checks if given asn is invalid if it falls in ranges below
+# 0				Reserved
+# 23456				AS_TRANS
+# 64000-64495			Reserved
+# 64496-64511			Reserved
+# 64512-65534			Reserved
+# 65535				Reserved
+# 65536-65551			Reserved
+# 65552-131071			Reserved
+# 133632-196607			Unallocated
+# 202240-262143			Unallocated
+# 263680-327679			Unallocated
+# 328704-393215			Unallocated
+# 394240-4199999999		Unallocated
+# 4200000000-4294967294	        Reserved 	
+# 4294967295			Reserved
+if iasn==0 or iasn==23456 or (iasn>=64000 and iasn<=64495) or (iasn>=64496 and iasn<=64511) or (iasn>=64512 and iasn<=65534) or (iasn==65535)\
+           or (iasn>=65536 and iasn<=65551) or (iasn>=65552 and iasn<=131071) or (iasn>=133632 and iasn<=196607)\
+           or (iasn>=202240 and iasn<=262143) or (iasn>=263680 and iasn<=327679) or (iasn>=328704 and iasn<=393215)\
+           or (iasn>=394240 and iasn<=4199999999) or (iasn>=4200000000 and iasn<=4294967294) or (iasn==4294967295):
+------------------------------------------------------------------------------------------
+SanitizeASPath(RawASPath)  such that RawASPath=a1 a2 a3 an\prime {c1 c2 ...cm\prime}
+Output: Sanitized Path a1...aN
+1. Remove consecutive duplicates in the input path a1...an
+2. If a_i \elementof invalid ASN, then path cannot be sanitized.. Stop.
+3. If there exists nodes within curly braces say {$c_1,c_2,...,c_m$}
+   * remove consecutive duplicates from the list of nodes within {...}   
+   * check if there is only one node within {...}
+		*check if any of the nodes is invalid
+			* If yes, then path cannot be sanitized. Stop.
+		* check if the last node of the sanitized path is not same as an \neq {c1}
+			* If yes, then append c1 to an
+-----------------------------------------------------------------------------------------------			
+ExtractUniquePaths			
+Input: BGP Routing Tables
+Output: List of unique path files T1...TN and NT1....NTM vantage points
+1. For each aspath in the BGP Routing Tables
+	* Sanitize the path SP=a1...aN\prime
+	* Append SP to file a1 such that SP does not exist in file a1
+-----------------------------------------------------------------------------------------------				
+Explain the terms degree and distance of a node
+-----------------------------------------------------------------------------------
