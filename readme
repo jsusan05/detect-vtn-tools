@@ -1,2 +1,7 @@
 This code is a product of a technical report. Recommended citation.
 Ruan, Lu, and Jinu Susan Varghese. "Computing observed autonomous system relationships in the internet." (2014). https://dr.lib.iastate.edu/handle/20.500.12876/20201
+
+To run this code:
+execute bin/data-conv
+
+Dependencies: libbgpdump-1.4.99.10
